@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deploy ERC20</title>
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+        body {
+            background-color: #f0af00; /* Orange background */
+            color: #00457c; /* Dark Blue text */
+        }
+        .container {
+            background-color: #ffffff; /* White background for form */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #ffcb3b; /* Tails' Orange for buttons */
+            border-color: #ffcb3b;
+        }
+        .btn-primary:hover {
+            background-color: #e6b635;
+            border-color: #e6b635;
+        }
+        .form-label {
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+</head>
+<body>
+	<div class="text-center">
+	<img src="./logo.png" alt="logo_image" style="width:300px;">
+    </div>
+		<div class="container mt-3 mb-3">
+        <button id="connectWallet" class="btn btn-primary mb-4">Connect to MetaMask</button>
+        <h2 class="mb-4">ERC20 Wizard - 1 FTM</h2>
+        <form id="deployForm"">
+            <div class="mb-3">
+                <label for="name" class="form-label">Name:</label>
+                <input type="text" class="form-control" id="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="symbol" class="form-label">Symbol:</label>
+                <input type="text" class="form-control" id="symbol" required>
+            </div>
+            <div class="mb-3">
+                <label for="decimals" class="form-label">Decimals:</label>
+                <input type="number" class="form-control" id="decimals" required>
+            </div>
+            <div class="mb-3">
+                <label for="maxSupply" class="form-label">Max Supply:</label>
+                <input type="number" class="form-control" id="maxSupply" required>
+            </div>
+            <div class="mb-3">
+                <label for="initialSupply" class="form-label">Initial Supply:</label>
+                <input type="number" class="form-control" id="initialSupply" required>
+            </div>
+                <!-- Tax1 and Tax1 Address -->
+    <div class="mb-3">
+        <label for="tax1" class="form-label">Tax1 Rate (%) - Optional:</label>
+        <input type="number" class="form-control" id="tax1">
+    </div>
+    <div class="mb-3">
+        <label for="tax1Address" class="form-label">Tax1 Address - Optional:</label>
+        <input type="text" class="form-control" id="tax1Address">
+    </div>
+
+    <!-- Tax2 and Tax2 Address -->
+    <div class="mb-3">
+        <label for="tax2" class="form-label">Tax2 Rate (%) - Optional:</label>
+        <input type="number" class="form-control" id="tax2">
+    </div>
+    <div class="mb-3">
+        <label for="tax2Address" class="form-label">Tax2 Address - Optional:</label>
+        <input type="text" class="form-control" id="tax2Address">
+    </div>
+
+    <!-- Tax3 and Tax3 Address -->
+    <div class="mb-3">
+        <label for="tax3" class="form-label">Tax3 Rate (%) - Optional:</label>
+        <input type="number" class="form-control" id="tax3">
+    </div>
+    <div class="mb-3">
+        <label for="tax3Address" class="form-label">Tax3 Address - Optional:</label>
+        <input type="text" class="form-control" id="tax3Address">
+    </div>
+
+            <button type="submit" class="btn btn-primary">Deploy Contract</button>
+        </form>
+		<h5 id="deployResult" class="mt-3"></h5>
+	    <div id="downloadSource"></div>
+    </div>
+	<script src="./data.js"></script>													 
+    <script src="./app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
