@@ -4,29 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deploy ERC20</title>
-  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <style>
+    <style>
+        :root {
+            --bg: #f2f5ff;
+            --surface: #e9eefc;
+            --surface-2: #eef2ff;
+            --text: #1b2a4b;
+            --muted: #526088;
+            --accent: #5f7cff;
+            --accent-2: #6ce5ff;
+            --danger: #ff6c8a;
+            --shadow-light: #ffffff;
+            --shadow-dark: #c8d0e7;
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+        }
+
         body {
-            background-color: #f0af00; /* Orange background */
-            color: #00457c; /* Dark Blue text */
+            min-height: 100vh;
+            font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            background: radial-gradient(circle at 15% 20%, #dff3ff 0%, var(--bg) 42%, #e8edff 100%);
+            padding: 24px 12px 40px;
         }
-        .container {
-            background-color: #ffffff; /* White background for form */
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+        .hero-title {
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            margin-top: 12px;
+            margin-bottom: 4px;
         }
-        .btn-primary {
-            background-color: #ffcb3b; /* Tails' Orange for buttons */
-            border-color: #ffcb3b;
+
+        .hero-subtitle {
+            color: var(--muted);
+            margin-bottom: 20px;
         }
-        .btn-primary:hover {
-            background-color: #e6b635;
-            border-color: #e6b635;
+
+        .neo-panel {
+            background: linear-gradient(135deg, var(--surface-2), var(--surface));
+            border-radius: var(--radius-xl);
+            box-shadow: 12px 12px 26px var(--shadow-dark), -12px -12px 26px var(--shadow-light);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            max-width: 920px;
         }
+
+        .section-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            box-shadow: inset 4px 4px 10px var(--shadow-dark), inset -4px -4px 10px var(--shadow-light);
+            margin-bottom: 1rem;
+        }
+
         .form-label {
-            font-weight: bold;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.35rem;
+        }
+
+        .helper-text {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: -4px;
+        }
+
+        .form-control,
+        .form-select {
+            background: var(--surface-2);
+            border: none;
+            border-radius: 12px;
+            padding: 0.7rem 0.85rem;
+            color: var(--text);
+            box-shadow: inset 3px 3px 7px var(--shadow-dark), inset -3px -3px 7px var(--shadow-light);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background: #f6f8ff;
+            box-shadow: inset 2px 2px 5px #bfc9e2, inset -2px -2px 5px #ffffff, 0 0 0 0.2rem rgba(95, 124, 255, 0.22);
+            color: var(--text);
+        }
+
+        .btn-neo {
+            border: none;
+            border-radius: 14px;
+            font-weight: 700;
+            padding: 0.65rem 1.15rem;
+            background: linear-gradient(135deg, var(--accent), #4f6be0);
+            color: #fff;
+            box-shadow: 5px 5px 12px #a6b2d6, -5px -5px 12px #ffffff;
+            transition: all 0.18s ease-in-out;
+        }
+
+        .btn-neo:hover {
+            transform: translateY(-1px);
+            color: #fff;
+            filter: brightness(1.04);
+        }
+
+        .btn-secondary-neo {
+            background: linear-gradient(135deg, var(--accent-2), #63b4ff);
+        }
+
+        .result-box {
+            background: #edf2ff;
+            border-radius: 14px;
+            padding: 0.85rem;
+            box-shadow: inset 4px 4px 9px #cad3eb, inset -4px -4px 9px #ffffff;
+            min-height: 56px;
+        }
+
+        .logo-wrap img {
+            width: 260px;
+            max-width: 100%;
+            filter: drop-shadow(6px 8px 12px rgba(15, 36, 95, 0.2));
+        }
+
+        .badge-pill {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.4rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            color: #204161;
+            background: linear-gradient(135deg, #cbfff8, #98d1ff);
+            box-shadow: 3px 3px 8px #c1d1ec, -3px -3px 8px #ffffff;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -35,85 +139,102 @@
     <script src="https://unpkg.com/@solana/spl-token@0.4.8/lib/index.iife.min.js"></script>
 </head>
 <body>
-	<div class="text-center">
-	<img src="./logo.png" alt="logo_image" style="width:300px;">
+    <div class="text-center logo-wrap">
+        <img src="./logo.png" alt="logo_image">
+        <h1 class="hero-title">Token Launch Wizard</h1>
+        <p class="hero-subtitle">Build your ERC20/SPL token in minutes with a clear, guided form.</p>
     </div>
-		<div class="container mt-3 mb-3">
-        <button id="connectWallet" class="btn btn-primary mb-4">Connect to MetaMask</button>
+
+    <div class="container neo-panel mt-2 mb-3 p-4 p-md-5">
+        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+            <button id="connectWallet" class="btn btn-neo btn-secondary-neo">Connect MetaMask</button>
+            <span class="badge-pill">Simple, fast, and chain-flexible ✨</span>
+        </div>
+
         <h2 class="mb-4" id="wizardTitle">ERC20 Wizard - 1 FTM</h2>
+
         <form id="deployForm">
-            <div class="mb-3">
-                <label for="network" class="form-label">Network:</label>
-                <select class="form-control" id="network" required>
-                    <option value="ethereum">Ethereum</option>
-                    <option value="bnb">BNB Smart Chain</option>
-                    <option value="polygon">Polygon</option>
-                    <option value="arbitrum">Arbitrum One</option>
-                    <option value="optimism">Optimism</option>
-                    <option value="base">Base</option>
-                    <option value="avalanche">Avalanche C-Chain</option>
-                    <option value="fantom" selected>Fantom Opera</option>
-                    <option value="solana">Solana Mainnet</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="name" class="form-label">Name:</label>
-                <input type="text" class="form-control" id="name" required>
-            </div>
-            <div class="mb-3">
-                <label for="symbol" class="form-label">Symbol:</label>
-                <input type="text" class="form-control" id="symbol" required>
-            </div>
-            <div class="mb-3">
-                <label for="decimals" class="form-label">Decimals:</label>
-                <input type="number" class="form-control" id="decimals" required>
-            </div>
-            <div class="mb-3">
-                <label for="maxSupply" class="form-label">Max Supply:</label>
-                <input type="number" class="form-control" id="maxSupply" required>
-            </div>
-            <div class="mb-3">
-                <label for="initialSupply" class="form-label">Initial Supply:</label>
-                <input type="number" class="form-control" id="initialSupply" required>
-            </div>
-            <div id="taxSection">
-                <!-- Tax1 and Tax1 Address -->
-                <div class="mb-3">
-                    <label for="tax1" class="form-label">Tax1 Rate (%) - Optional:</label>
-                    <input type="number" class="form-control" id="tax1">
-                </div>
-                <div class="mb-3">
-                    <label for="tax1Address" class="form-label">Tax1 Address - Optional:</label>
-                    <input type="text" class="form-control" id="tax1Address">
-                </div>
-
-                <!-- Tax2 and Tax2 Address -->
-                <div class="mb-3">
-                    <label for="tax2" class="form-label">Tax2 Rate (%) - Optional:</label>
-                    <input type="number" class="form-control" id="tax2">
-                </div>
-                <div class="mb-3">
-                    <label for="tax2Address" class="form-label">Tax2 Address - Optional:</label>
-                    <input type="text" class="form-control" id="tax2Address">
-                </div>
-
-                <!-- Tax3 and Tax3 Address -->
-                <div class="mb-3">
-                    <label for="tax3" class="form-label">Tax3 Rate (%) - Optional:</label>
-                    <input type="number" class="form-control" id="tax3">
-                </div>
-                <div class="mb-3">
-                    <label for="tax3Address" class="form-label">Tax3 Address - Optional:</label>
-                    <input type="text" class="form-control" id="tax3Address">
+            <div class="section-card">
+                <h5 class="mb-3">Token Basics</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="network" class="form-label">Network</label>
+                        <select class="form-select" id="network" required>
+                            <option value="ethereum">Ethereum</option>
+                            <option value="bnb">BNB Smart Chain</option>
+                            <option value="polygon">Polygon</option>
+                            <option value="arbitrum">Arbitrum One</option>
+                            <option value="optimism">Optimism</option>
+                            <option value="base">Base</option>
+                            <option value="avalanche">Avalanche C-Chain</option>
+                            <option value="fantom" selected>Fantom Opera</option>
+                            <option value="solana">Solana Mainnet</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" placeholder="Example: Nova Token" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="symbol" class="form-label">Symbol</label>
+                        <input type="text" class="form-control" id="symbol" placeholder="NOVA" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="decimals" class="form-label">Decimals</label>
+                        <input type="number" class="form-control" id="decimals" placeholder="18" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="maxSupply" class="form-label">Max Supply</label>
+                        <input type="number" class="form-control" id="maxSupply" placeholder="1000000" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="initialSupply" class="form-label">Initial Supply</label>
+                        <input type="number" class="form-control" id="initialSupply" placeholder="250000" required>
+                        <div class="helper-text">Tip: Initial supply should not exceed max supply.</div>
+                    </div>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Deploy Token</button>
+            <div id="taxSection" class="section-card">
+                <h5 class="mb-3">Advanced Tax Settings (Optional)</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="tax1" class="form-label">Tax1 Rate (%)</label>
+                        <input type="number" class="form-control" id="tax1" placeholder="0.5">
+                    </div>
+                    <div class="col-md-8">
+                        <label for="tax1Address" class="form-label">Tax1 Address</label>
+                        <input type="text" class="form-control" id="tax1Address" placeholder="0x...">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="tax2" class="form-label">Tax2 Rate (%)</label>
+                        <input type="number" class="form-control" id="tax2" placeholder="1.0">
+                    </div>
+                    <div class="col-md-8">
+                        <label for="tax2Address" class="form-label">Tax2 Address</label>
+                        <input type="text" class="form-control" id="tax2Address" placeholder="0x...">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="tax3" class="form-label">Tax3 Rate (%)</label>
+                        <input type="number" class="form-control" id="tax3" placeholder="2.0">
+                    </div>
+                    <div class="col-md-8">
+                        <label for="tax3Address" class="form-label">Tax3 Address</label>
+                        <input type="text" class="form-control" id="tax3Address" placeholder="0x...">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-neo">Deploy Token</button>
         </form>
-		<h5 id="deployResult" class="mt-3"></h5>
-	    <div id="downloadSource"></div>
+
+        <h5 id="deployResult" class="mt-3 result-box"></h5>
+        <div id="downloadSource" class="mt-3"></div>
     </div>
-	<script src="./data.js"></script>													 
+
+    <script src="./data.js"></script>
     <script src="./app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
