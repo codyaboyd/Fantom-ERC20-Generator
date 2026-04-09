@@ -31,6 +31,8 @@
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    <script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>
+    <script src="https://unpkg.com/@solana/spl-token@0.4.8/lib/index.iife.min.js"></script>
 </head>
 <body>
 	<div class="text-center">
@@ -39,7 +41,7 @@
 		<div class="container mt-3 mb-3">
         <button id="connectWallet" class="btn btn-primary mb-4">Connect to MetaMask</button>
         <h2 class="mb-4" id="wizardTitle">ERC20 Wizard - 1 FTM</h2>
-        <form id="deployForm"">
+        <form id="deployForm">
             <div class="mb-3">
                 <label for="network" class="form-label">Network:</label>
                 <select class="form-control" id="network" required>
@@ -51,6 +53,7 @@
                     <option value="base">Base</option>
                     <option value="avalanche">Avalanche C-Chain</option>
                     <option value="fantom" selected>Fantom Opera</option>
+                    <option value="solana">Solana Mainnet</option>
                 </select>
             </div>
             <div class="mb-3">
@@ -73,37 +76,39 @@
                 <label for="initialSupply" class="form-label">Initial Supply:</label>
                 <input type="number" class="form-control" id="initialSupply" required>
             </div>
+            <div id="taxSection">
                 <!-- Tax1 and Tax1 Address -->
-    <div class="mb-3">
-        <label for="tax1" class="form-label">Tax1 Rate (%) - Optional:</label>
-        <input type="number" class="form-control" id="tax1">
-    </div>
-    <div class="mb-3">
-        <label for="tax1Address" class="form-label">Tax1 Address - Optional:</label>
-        <input type="text" class="form-control" id="tax1Address">
-    </div>
+                <div class="mb-3">
+                    <label for="tax1" class="form-label">Tax1 Rate (%) - Optional:</label>
+                    <input type="number" class="form-control" id="tax1">
+                </div>
+                <div class="mb-3">
+                    <label for="tax1Address" class="form-label">Tax1 Address - Optional:</label>
+                    <input type="text" class="form-control" id="tax1Address">
+                </div>
 
-    <!-- Tax2 and Tax2 Address -->
-    <div class="mb-3">
-        <label for="tax2" class="form-label">Tax2 Rate (%) - Optional:</label>
-        <input type="number" class="form-control" id="tax2">
-    </div>
-    <div class="mb-3">
-        <label for="tax2Address" class="form-label">Tax2 Address - Optional:</label>
-        <input type="text" class="form-control" id="tax2Address">
-    </div>
+                <!-- Tax2 and Tax2 Address -->
+                <div class="mb-3">
+                    <label for="tax2" class="form-label">Tax2 Rate (%) - Optional:</label>
+                    <input type="number" class="form-control" id="tax2">
+                </div>
+                <div class="mb-3">
+                    <label for="tax2Address" class="form-label">Tax2 Address - Optional:</label>
+                    <input type="text" class="form-control" id="tax2Address">
+                </div>
 
-    <!-- Tax3 and Tax3 Address -->
-    <div class="mb-3">
-        <label for="tax3" class="form-label">Tax3 Rate (%) - Optional:</label>
-        <input type="number" class="form-control" id="tax3">
-    </div>
-    <div class="mb-3">
-        <label for="tax3Address" class="form-label">Tax3 Address - Optional:</label>
-        <input type="text" class="form-control" id="tax3Address">
-    </div>
+                <!-- Tax3 and Tax3 Address -->
+                <div class="mb-3">
+                    <label for="tax3" class="form-label">Tax3 Rate (%) - Optional:</label>
+                    <input type="number" class="form-control" id="tax3">
+                </div>
+                <div class="mb-3">
+                    <label for="tax3Address" class="form-label">Tax3 Address - Optional:</label>
+                    <input type="text" class="form-control" id="tax3Address">
+                </div>
+            </div>
 
-            <button type="submit" class="btn btn-primary">Deploy Contract</button>
+            <button type="submit" class="btn btn-primary">Deploy Token</button>
         </form>
 		<h5 id="deployResult" class="mt-3"></h5>
 	    <div id="downloadSource"></div>

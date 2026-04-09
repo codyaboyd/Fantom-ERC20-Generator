@@ -1,6 +1,6 @@
 # Multi-Network ERC20 Generator
 
-A lightweight, browser-based ERC-20 token generator and deployment UI for **major EVM networks** (Ethereum, BNB Smart Chain, Polygon, Arbitrum, Optimism, Base, Avalanche, and Fantom).
+A lightweight, browser-based token generator and deployment UI for **major EVM networks** (Ethereum, BNB Smart Chain, Polygon, Arbitrum, Optimism, Base, Avalanche, and Fantom) plus **Solana** support via Phantom.
 
 This repository contains two static web apps:
 
@@ -15,6 +15,7 @@ Both apps are plain HTML/CSS/JS and can be served locally with any static file s
 
 - Build ERC-20 token contracts using a guided form.
 - Target deployment on major EVM networks via MetaMask chain switching.
+- Deploy SPL token mints on Solana mainnet via Phantom wallet.
 - Includes Solidity source template (`src.sol`) used by the builder UI.
 - Separate admin panel for post-deployment management workflows.
 
@@ -69,7 +70,7 @@ npx http-server adminPanel_Opera
 ## Requirements
 
 - A modern browser (Chrome, Firefox, Brave, Edge, etc.)
-- Access to a wallet/browser extension compatible with EVM chains (for deployment/management actions)
+- Access to wallet/browser extensions compatible with the selected chain (MetaMask for EVM or Phantom for Solana deployments)
 - Network access to the selected chain RPC endpoint
 
 ---
