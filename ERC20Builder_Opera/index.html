@@ -38,8 +38,21 @@
     </div>
 		<div class="container mt-3 mb-3">
         <button id="connectWallet" class="btn btn-primary mb-4">Connect to MetaMask</button>
-        <h2 class="mb-4">ERC20 Wizard - 1 FTM</h2>
+        <h2 class="mb-4" id="wizardTitle">ERC20 Wizard - 1 FTM</h2>
         <form id="deployForm"">
+            <div class="mb-3">
+                <label for="network" class="form-label">Network:</label>
+                <select class="form-control" id="network" required>
+                    <option value="ethereum">Ethereum</option>
+                    <option value="bnb">BNB Smart Chain</option>
+                    <option value="polygon">Polygon</option>
+                    <option value="arbitrum">Arbitrum One</option>
+                    <option value="optimism">Optimism</option>
+                    <option value="base">Base</option>
+                    <option value="avalanche">Avalanche C-Chain</option>
+                    <option value="fantom" selected>Fantom Opera</option>
+                </select>
+            </div>
             <div class="mb-3">
                 <label for="name" class="form-label">Name:</label>
                 <input type="text" class="form-control" id="name" required>

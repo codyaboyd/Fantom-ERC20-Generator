@@ -1,6 +1,6 @@
-# Fantom ERC20 Generator
+# Multi-Network ERC20 Generator
 
-A lightweight, browser-based ERC-20 token generator and deployment UI tailored for **Fantom Opera**.
+A lightweight, browser-based ERC-20 token generator and deployment UI for **major EVM networks** (Ethereum, BNB Smart Chain, Polygon, Arbitrum, Optimism, Base, Avalanche, and Fantom).
 
 This repository contains two static web apps:
 
@@ -14,7 +14,7 @@ Both apps are plain HTML/CSS/JS and can be served locally with any static file s
 ## Features
 
 - Build ERC-20 token contracts using a guided form.
-- Target deployment on the Fantom Opera network.
+- Target deployment on major EVM networks via MetaMask chain switching.
 - Includes Solidity source template (`src.sol`) used by the builder UI.
 - Separate admin panel for post-deployment management workflows.
 
@@ -69,8 +69,8 @@ npx http-server adminPanel_Opera
 ## Requirements
 
 - A modern browser (Chrome, Firefox, Brave, Edge, etc.)
-- Access to a wallet/browser extension compatible with Fantom Opera (for deployment/management actions)
-- Network access to Fantom RPC endpoints
+- Access to a wallet/browser extension compatible with EVM chains (for deployment/management actions)
+- Network access to the selected chain RPC endpoint
 
 ---
 
