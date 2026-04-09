@@ -5,6 +5,7 @@ $(document).ready(function() {
 
     const NETWORKS = {
         ethereum: {
+            type: 'evm',
             chainId: '0x1',
             chainName: 'Ethereum Mainnet',
             nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
@@ -13,6 +14,7 @@ $(document).ready(function() {
             label: 'Ethereum'
         },
         bnb: {
+            type: 'evm',
             chainId: '0x38',
             chainName: 'BNB Smart Chain',
             nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
@@ -21,6 +23,7 @@ $(document).ready(function() {
             label: 'BNB Smart Chain'
         },
         polygon: {
+            type: 'evm',
             chainId: '0x89',
             chainName: 'Polygon PoS',
             nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
@@ -29,6 +32,7 @@ $(document).ready(function() {
             label: 'Polygon'
         },
         arbitrum: {
+            type: 'evm',
             chainId: '0xa4b1',
             chainName: 'Arbitrum One',
             nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
@@ -37,6 +41,7 @@ $(document).ready(function() {
             label: 'Arbitrum One'
         },
         optimism: {
+            type: 'evm',
             chainId: '0xa',
             chainName: 'OP Mainnet',
             nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
@@ -45,6 +50,7 @@ $(document).ready(function() {
             label: 'Optimism'
         },
         base: {
+            type: 'evm',
             chainId: '0x2105',
             chainName: 'Base',
             nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
@@ -53,6 +59,7 @@ $(document).ready(function() {
             label: 'Base'
         },
         avalanche: {
+            type: 'evm',
             chainId: '0xa86a',
             chainName: 'Avalanche C-Chain',
             nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
@@ -61,12 +68,20 @@ $(document).ready(function() {
             label: 'Avalanche C-Chain'
         },
         fantom: {
+            type: 'evm',
             chainId: '0xfa',
             chainName: 'Fantom Opera',
             nativeCurrency: { name: 'Fantom', symbol: 'FTM', decimals: 18 },
             rpcUrls: ['https://rpc.ftm.tools'],
             blockExplorerUrls: ['https://ftmscan.com'],
             label: 'Fantom Opera'
+        },
+        solana: {
+            type: 'solana',
+            rpcUrl: 'https://api.mainnet-beta.solana.com',
+            nativeCurrency: { name: 'Solana', symbol: 'SOL', decimals: 9 },
+            blockExplorerUrls: ['https://solscan.io'],
+            label: 'Solana Mainnet'
         }
     };
 
@@ -75,13 +90,46 @@ $(document).ready(function() {
         return NETWORKS[selected] || NETWORKS.fantom;
     }
 
+    function isSolanaSelected() {
+        return getSelectedNetwork().type === 'solana';
+    }
+
+    function toBaseUnits(amountStr, decimals) {
+        const value = String(amountStr || '').trim();
+        if (!value) return 0n;
+        if (!/^\d+(\.\d+)?$/.test(value)) {
+            throw new Error('Invalid numeric amount provided.');
+        }
+
+        const [whole, fractionRaw = ''] = value.split('.');
+        const fractionPadded = (fractionRaw + '0'.repeat(decimals)).slice(0, decimals);
+        const asString = `${whole}${fractionPadded}`.replace(/^0+(?=\d)/, '');
+        return BigInt(asString || '0');
+    }
+
     function updateUiForNetwork() {
         const network = getSelectedNetwork();
-        $('#wizardTitle').text(`ERC20 Wizard - 1 ${network.nativeCurrency.symbol}`);
+        const isSolana = network.type === 'solana';
+
+        if (isSolana) {
+            $('#wizardTitle').text('SPL Token Wizard - Phantom wallet required');
+            $('#connectWallet').text('Connect to Phantom');
+            $('#downloadSource').empty();
+            $('#taxSection').hide();
+        } else {
+            $('#wizardTitle').text(`ERC20 Wizard - 1 ${network.nativeCurrency.symbol}`);
+            $('#connectWallet').text('Connect to MetaMask');
+            $('#taxSection').show();
+        }
     }
 
     async function ensureCorrectNetwork() {
         const network = getSelectedNetwork();
+
+        if (network.type === 'solana') {
+            return network;
+        }
+
         const activeChainId = await window.ethereum.request({ method: 'eth_chainId' });
 
         if (activeChainId !== network.chainId) {
@@ -116,21 +164,36 @@ $(document).ready(function() {
 
     $('#connectWallet').click(async function() {
         if (!isConnected) {
-            if (window.ethereum) {
-                try {
-                    await ensureCorrectNetwork();
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            try {
+                if (isSolanaSelected()) {
+                    if (!window.solana || !window.solana.isPhantom) {
+                        alert('Phantom wallet is not installed! Please install Phantom to continue: https://phantom.app/download');
+                        return;
+                    }
 
-                    defaultAddress = accounts[0];
-                    $('#tax1Address, #tax2Address, #tax3Address').val(defaultAddress);
-
+                    const response = await window.solana.connect();
+                    defaultAddress = response.publicKey.toString();
                     $('#connectWallet').hide();
                     isConnected = true;
-                } catch (error) {
-                    console.error('Error connecting to wallet:', error);
+                    return;
                 }
-            } else {
-                alert('MetaMask is not installed! Please install MetaMask to continue: https://metamask.io/download.html');
+
+                if (!window.ethereum) {
+                    alert('MetaMask is not installed! Please install MetaMask to continue: https://metamask.io/download.html');
+                    return;
+                }
+
+                await ensureCorrectNetwork();
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+                defaultAddress = accounts[0];
+                $('#tax1Address, #tax2Address, #tax3Address').val(defaultAddress);
+
+                $('#connectWallet').hide();
+                isConnected = true;
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                alert('Error connecting wallet: ' + error.message);
             }
         }
     });
@@ -139,13 +202,108 @@ $(document).ready(function() {
     $('#deployForm').on('submit', async function(e) {
         e.preventDefault();
 
+        const network = getSelectedNetwork();
         const name = $('#name').val();
         const symbol = $('#symbol').val();
         let decimals = parseInt($('#decimals').val());
-        decimals = (!decimals || decimals <= 0 || decimals > 18) ? 18 : decimals;
 
-        const maxSupply = ethers.utils.parseUnits($('#maxSupply').val(), decimals);
-        const initialSupply = ethers.utils.parseUnits($('#initialSupply').val(), decimals);
+        if (network.type === 'solana') {
+            decimals = Number.isFinite(decimals) && decimals >= 0 && decimals <= 9 ? decimals : 9;
+        } else {
+            decimals = (!decimals || decimals <= 0 || decimals > 18) ? 18 : decimals;
+        }
+
+        const initialSupplyInput = $('#initialSupply').val();
+        const maxSupplyInput = $('#maxSupply').val();
+
+        if (network.type === 'solana') {
+            try {
+                if (!window.solana || !window.solana.isPhantom) {
+                    throw new Error('Phantom wallet is required for Solana deployments.');
+                }
+
+                if (!window.solana.publicKey) {
+                    await window.solana.connect();
+                }
+
+                const payer = window.solana.publicKey;
+                const initialSupply = toBaseUnits(initialSupplyInput, decimals);
+                const connection = new solanaWeb3.Connection(network.rpcUrl, 'confirmed');
+
+                const mintKeypair = solanaWeb3.Keypair.generate();
+                const mintRent = await connection.getMinimumBalanceForRentExemption(splToken.MINT_SIZE);
+                const associatedTokenAccount = await splToken.getAssociatedTokenAddress(
+                    mintKeypair.publicKey,
+                    payer,
+                    false,
+                    splToken.TOKEN_PROGRAM_ID,
+                    splToken.ASSOCIATED_TOKEN_PROGRAM_ID
+                );
+
+                const transaction = new solanaWeb3.Transaction();
+                transaction.add(
+                    solanaWeb3.SystemProgram.createAccount({
+                        fromPubkey: payer,
+                        newAccountPubkey: mintKeypair.publicKey,
+                        space: splToken.MINT_SIZE,
+                        lamports: mintRent,
+                        programId: splToken.TOKEN_PROGRAM_ID
+                    }),
+                    splToken.createInitializeMint2Instruction(
+                        mintKeypair.publicKey,
+                        decimals,
+                        payer,
+                        payer,
+                        splToken.TOKEN_PROGRAM_ID
+                    ),
+                    splToken.createAssociatedTokenAccountInstruction(
+                        payer,
+                        associatedTokenAccount,
+                        payer,
+                        mintKeypair.publicKey,
+                        splToken.TOKEN_PROGRAM_ID,
+                        splToken.ASSOCIATED_TOKEN_PROGRAM_ID
+                    )
+                );
+
+                if (initialSupply > 0n) {
+                    transaction.add(
+                        splToken.createMintToInstruction(
+                            mintKeypair.publicKey,
+                            associatedTokenAccount,
+                            payer,
+                            initialSupply,
+                            [],
+                            splToken.TOKEN_PROGRAM_ID
+                        )
+                    );
+                }
+
+                const latestBlockhash = await connection.getLatestBlockhash('finalized');
+                transaction.recentBlockhash = latestBlockhash.blockhash;
+                transaction.feePayer = payer;
+                transaction.partialSign(mintKeypair);
+
+                const signed = await window.solana.signTransaction(transaction);
+                const signature = await connection.sendRawTransaction(signed.serialize());
+                await connection.confirmTransaction({
+                    signature,
+                    blockhash: latestBlockhash.blockhash,
+                    lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+                }, 'confirmed');
+
+                const explorerLink = `${network.blockExplorerUrls[0]}/token/${mintKeypair.publicKey.toString()}`;
+                $('#deployResult').html(`SPL token mint deployed on ${network.label}: <a href="${explorerLink}" target="_blank">${mintKeypair.publicKey.toString()}</a><br>Tx: <a href="${network.blockExplorerUrls[0]}/tx/${signature}" target="_blank">${signature}</a><br><small>Name and symbol are entered for planning; metadata is not automatically created in this flow.</small>`);
+                return;
+            } catch (error) {
+                console.error('Error deploying SPL token:', error);
+                alert('Error deploying SPL token: ' + error.message);
+                return;
+            }
+        }
+
+        const maxSupply = ethers.utils.parseUnits(maxSupplyInput, decimals);
+        const initialSupply = ethers.utils.parseUnits(initialSupplyInput, decimals);
         const tax1 = $('#tax1').val() ? parseFloat($('#tax1').val()) : defaultTaxRate;
         const tax1Address = $('#tax1Address').val() || defaultAddress;
         const tax2 = $('#tax2').val() ? parseFloat($('#tax2').val()) : defaultTaxRate;
@@ -167,7 +325,7 @@ $(document).ready(function() {
             isValid = false;
         }
 
-        if (parseFloat($('#initialSupply').val()) > parseFloat($('#maxSupply').val())) {
+        if (parseFloat(initialSupplyInput) > parseFloat(maxSupplyInput)) {
             alert('Initial supply cannot be more than max supply.');
             isValid = false;
         }
@@ -175,11 +333,11 @@ $(document).ready(function() {
         if (!isValid) return;
 
         try {
-            const network = await ensureCorrectNetwork();
+            const evmNetwork = await ensureCorrectNetwork();
             const signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
 
             const factory = new ethers.ContractFactory(abi, bytecode, signer);
-            const overrides = { value: ethers.utils.parseUnits("1", "ether") };
+            const overrides = { value: ethers.utils.parseUnits('1', 'ether') };
             const contract = await factory.deploy(
                 name, symbol, decimals, maxSupply, initialSupply,
                 tax1, tax1Address, tax2, tax2Address, tax3, tax3Address, overrides
@@ -189,8 +347,8 @@ $(document).ready(function() {
             await contract.deployed();
             console.log('Contract deployed at:', contract.address);
 
-            const explorerLink = `${network.blockExplorerUrls[0]}/address/${contract.address}`;
-            $('#deployResult').html(`Contract deployed on ${network.label} at: <a href="${explorerLink}" target="_blank">${contract.address}</a><br><button type="button" class="btn btn-info mt-3" id="downloadSource">Download Source Code</button>`);
+            const explorerLink = `${evmNetwork.blockExplorerUrls[0]}/address/${contract.address}`;
+            $('#deployResult').html(`Contract deployed on ${evmNetwork.label} at: <a href="${explorerLink}" target="_blank">${contract.address}</a><br><button type="button" class="btn btn-info mt-3" id="downloadSource">Download Source Code</button>`);
 
             $('#downloadSource').click(function() {
                 window.location.href = './src.sol';
