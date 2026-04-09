@@ -2,6 +2,9 @@ $(document).ready(function() {
     var isConnected = false;
     var defaultTaxRate = 0;
     var defaultAddress = '';
+    let connectedWalletType = null;
+    let activeEvmProvider = null;
+    let activeSolanaProvider = null;
 
     const NETWORKS = {
         ethereum: {
@@ -94,6 +97,100 @@ $(document).ready(function() {
         return getSelectedNetwork().type === 'solana';
     }
 
+    function setConnectedState(address, walletType) {
+        defaultAddress = address || '';
+        isConnected = Boolean(address);
+        connectedWalletType = walletType || null;
+
+        if (walletType === 'evm' && address) {
+            $('#tax1Address, #tax2Address, #tax3Address').val(address);
+            $('#connectWallet').text(`Connected: ${address.slice(0, 6)}...${address.slice(-4)}`);
+        } else if (walletType === 'solana' && address) {
+            $('#connectWallet').text(`Connected: ${address.slice(0, 4)}...${address.slice(-4)}`);
+        } else {
+            updateUiForNetwork();
+        }
+
+        if (isConnected) {
+            $('#connectWallet').prop('disabled', true);
+        } else {
+            $('#connectWallet').prop('disabled', false);
+        }
+    }
+
+    function resetConnectedState() {
+        setConnectedState('', null);
+    }
+
+    function getEvmProvider() {
+        const ethereum = window.ethereum;
+        if (!ethereum) return null;
+
+        // Prefer MetaMask provider explicitly when multiple EIP-1193 providers are injected.
+        if (Array.isArray(ethereum.providers)) {
+            const metaMaskProvider = ethereum.providers.find((provider) => provider && provider.isMetaMask);
+            if (metaMaskProvider) return metaMaskProvider;
+            return ethereum.providers[0] || ethereum;
+        }
+
+        return ethereum;
+    }
+
+    function getPhantomProvider() {
+        const injectedProvider = window.phantom?.solana || window.solana;
+        if (injectedProvider && injectedProvider.isPhantom) {
+            return injectedProvider;
+        }
+        return null;
+    }
+
+    function attachEvmEventHandlers(provider) {
+        if (!provider || typeof provider.on !== 'function') return;
+        provider.removeListener?.('accountsChanged', onEvmAccountsChanged);
+        provider.removeListener?.('chainChanged', onEvmChainChanged);
+        provider.removeListener?.('disconnect', onEvmDisconnect);
+        provider.on('accountsChanged', onEvmAccountsChanged);
+        provider.on('chainChanged', onEvmChainChanged);
+        provider.on('disconnect', onEvmDisconnect);
+    }
+
+    function attachSolanaEventHandlers(provider) {
+        if (!provider || typeof provider.on !== 'function') return;
+        provider.off?.('accountChanged', onSolanaAccountChanged);
+        provider.off?.('disconnect', onSolanaDisconnect);
+        provider.on('accountChanged', onSolanaAccountChanged);
+        provider.on('disconnect', onSolanaDisconnect);
+    }
+
+    function onEvmAccountsChanged(accounts) {
+        if (!Array.isArray(accounts) || accounts.length === 0) {
+            resetConnectedState();
+            return;
+        }
+        setConnectedState(accounts[0], 'evm');
+    }
+
+    function onEvmChainChanged() {
+        // Keep simple and robust: force consistent provider and contract state for selected chain.
+        window.location.reload();
+    }
+
+    function onEvmDisconnect() {
+        resetConnectedState();
+    }
+
+    function onSolanaAccountChanged(publicKey) {
+        if (!publicKey) {
+            resetConnectedState();
+            return;
+        }
+        setConnectedState(publicKey.toString(), 'solana');
+    }
+
+    function onSolanaDisconnect() {
+        resetConnectedState();
+    }
+
     function toBaseUnits(amountStr, decimals) {
         const value = String(amountStr || '').trim();
         if (!value) return 0n;
@@ -130,17 +227,22 @@ $(document).ready(function() {
             return network;
         }
 
-        const activeChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        const provider = getEvmProvider();
+        if (!provider) {
+            throw new Error('MetaMask (or a compatible EVM wallet) is not available.');
+        }
+
+        const activeChainId = await provider.request({ method: 'eth_chainId' });
 
         if (activeChainId !== network.chainId) {
             try {
-                await window.ethereum.request({
+                await provider.request({
                     method: 'wallet_switchEthereumChain',
                     params: [{ chainId: network.chainId }],
                 });
             } catch (error) {
                 if (error.code === 4902) {
-                    await window.ethereum.request({
+                    await provider.request({
                         method: 'wallet_addEthereumChain',
                         params: [{
                             chainId: network.chainId,
@@ -159,38 +261,41 @@ $(document).ready(function() {
         return network;
     }
 
-    $('#network').on('change', updateUiForNetwork);
+    $('#network').on('change', function() {
+        resetConnectedState();
+        updateUiForNetwork();
+    });
     updateUiForNetwork();
 
     $('#connectWallet').click(async function() {
         if (!isConnected) {
             try {
                 if (isSolanaSelected()) {
-                    if (!window.solana || !window.solana.isPhantom) {
+                    const provider = getPhantomProvider();
+                    if (!provider) {
                         alert('Phantom wallet is not installed! Please install Phantom to continue: https://phantom.app/download');
                         return;
                     }
 
-                    const response = await window.solana.connect();
-                    defaultAddress = response.publicKey.toString();
-                    $('#connectWallet').hide();
-                    isConnected = true;
+                    activeSolanaProvider = provider;
+                    attachSolanaEventHandlers(provider);
+                    const response = await provider.connect();
+                    setConnectedState(response.publicKey.toString(), 'solana');
                     return;
                 }
 
-                if (!window.ethereum) {
+                const provider = getEvmProvider();
+                if (!provider) {
                     alert('MetaMask is not installed! Please install MetaMask to continue: https://metamask.io/download.html');
                     return;
                 }
 
+                activeEvmProvider = provider;
+                attachEvmEventHandlers(provider);
                 await ensureCorrectNetwork();
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const accounts = await provider.request({ method: 'eth_requestAccounts' });
 
-                defaultAddress = accounts[0];
-                $('#tax1Address, #tax2Address, #tax3Address').val(defaultAddress);
-
-                $('#connectWallet').hide();
-                isConnected = true;
+                setConnectedState(accounts[0], 'evm');
             } catch (error) {
                 console.error('Error connecting wallet:', error);
                 alert('Error connecting wallet: ' + error.message);
@@ -218,15 +323,16 @@ $(document).ready(function() {
 
         if (network.type === 'solana') {
             try {
-                if (!window.solana || !window.solana.isPhantom) {
+                const provider = activeSolanaProvider || getPhantomProvider();
+                if (!provider) {
                     throw new Error('Phantom wallet is required for Solana deployments.');
                 }
 
-                if (!window.solana.publicKey) {
-                    await window.solana.connect();
+                if (!provider.publicKey) {
+                    await provider.connect();
                 }
 
-                const payer = window.solana.publicKey;
+                const payer = provider.publicKey;
                 const initialSupply = toBaseUnits(initialSupplyInput, decimals);
                 const connection = new solanaWeb3.Connection(network.rpcUrl, 'confirmed');
 
@@ -284,7 +390,7 @@ $(document).ready(function() {
                 transaction.feePayer = payer;
                 transaction.partialSign(mintKeypair);
 
-                const signed = await window.solana.signTransaction(transaction);
+                const signed = await provider.signTransaction(transaction);
                 const signature = await connection.sendRawTransaction(signed.serialize());
                 await connection.confirmTransaction({
                     signature,
@@ -333,8 +439,13 @@ $(document).ready(function() {
         if (!isValid) return;
 
         try {
+            const provider = activeEvmProvider || getEvmProvider();
+            if (!provider) {
+                throw new Error('MetaMask (or a compatible EVM wallet) is not available.');
+            }
+
             const evmNetwork = await ensureCorrectNetwork();
-            const signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
+            const signer = new ethers.providers.Web3Provider(provider).getSigner();
 
             const factory = new ethers.ContractFactory(abi, bytecode, signer);
             const overrides = { value: ethers.utils.parseUnits('1', 'ether') };
