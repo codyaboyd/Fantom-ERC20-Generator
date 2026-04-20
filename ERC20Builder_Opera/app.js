@@ -470,3 +470,144 @@ $(document).ready(function() {
         }
     });
 });
+
+(function initUnifiedAdminPanel() {
+    let adminSigner;
+    let adminContract;
+    let adminProvider;
+
+    function adminSetStatus(message) {
+        const el = document.getElementById('adminStatus');
+        if (el) el.innerText = message;
+    }
+
+    function adminShowError(error) {
+        console.error(error);
+        adminSetStatus('Error: ' + (error?.message || error));
+    }
+
+    async function adminConnectWallet() {
+        if (!window.ethereum) {
+            adminSetStatus('Please install MetaMask!');
+            return;
+        }
+
+        try {
+            adminProvider = new ethers.providers.Web3Provider(window.ethereum);
+            await adminProvider.send('eth_requestAccounts', []);
+            adminSigner = adminProvider.getSigner();
+            adminContract = new ethers.Contract(adminContractAddress, adminContractABI, adminSigner);
+            adminSetStatus('Wallet connected!');
+
+            const adminButton = document.getElementById('adminConnectWallet');
+            const address = await adminSigner.getAddress();
+            if (adminButton && address) {
+                adminButton.innerText = `Connected: ${address.slice(0, 6)}...${address.slice(-4)}`;
+            }
+        } catch (error) {
+            adminShowError(error);
+        }
+    }
+
+    async function adminHandleTransactionResponse(transaction) {
+        adminSetStatus('Transaction sent. Waiting for confirmation...');
+        await transaction.wait();
+        adminSetStatus('Transaction confirmed.');
+    }
+
+    async function adminTransferOwnership(newOwner) {
+        try {
+            const transaction = await adminContract.transferOwnership(newOwner);
+            await adminHandleTransactionResponse(transaction);
+        } catch (error) {
+            adminShowError(error);
+        }
+    }
+
+    async function adminSetPrice(serviceName, price) {
+        try {
+            const transaction = await adminContract.setPrice(serviceName, ethers.utils.parseUnits(price, 'wei'));
+            await adminHandleTransactionResponse(transaction);
+        } catch (error) {
+            adminShowError(error);
+        }
+    }
+
+    async function adminWithdrawETH(amount) {
+        try {
+            const transaction = await adminContract.withdraw(ethers.utils.parseUnits(amount, 'wei'));
+            await adminHandleTransactionResponse(transaction);
+        } catch (error) {
+            adminShowError(error);
+        }
+    }
+
+    async function adminWithdrawTokens(tokenAddress) {
+        try {
+            const transaction = await adminContract.withdrawTokens(tokenAddress);
+            await adminHandleTransactionResponse(transaction);
+        } catch (error) {
+            adminShowError(error);
+        }
+    }
+
+    async function adminCheckPrice(serviceName) {
+        try {
+            const price = await adminContract.getPrice(serviceName);
+            const display = document.getElementById('adminPriceDisplay');
+            if (display) {
+                display.innerText = `Price for ${serviceName}: ${ethers.utils.formatUnits(price, 'wei')} Wei`;
+            }
+        } catch (error) {
+            adminShowError(error);
+        }
+    }
+
+    async function adminCheckContractBalance() {
+        try {
+            const balance = await adminProvider.getBalance(adminContract.address);
+            const display = document.getElementById('adminContractBalance');
+            if (display) {
+                display.innerText = `Contract Balance: ${ethers.utils.formatEther(balance)} ETH`;
+            }
+        } catch (error) {
+            adminShowError(error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const connectBtn = document.getElementById('adminConnectWallet');
+        if (!connectBtn) return;
+
+        connectBtn.addEventListener('click', function() {
+            adminConnectWallet();
+        });
+
+        document.getElementById('adminTransferOwnership').addEventListener('click', function() {
+            adminTransferOwnership(document.getElementById('adminNewOwner').value);
+        });
+
+        document.getElementById('adminSetPrice').addEventListener('click', function() {
+            adminSetPrice(
+                document.getElementById('adminServiceName').value,
+                document.getElementById('adminServicePrice').value
+            );
+        });
+
+        document.getElementById('adminWithdrawEth').addEventListener('click', function() {
+            adminWithdrawETH(document.getElementById('adminWithdrawAmount').value);
+        });
+
+        document.getElementById('adminWithdrawTokens').addEventListener('click', function() {
+            adminWithdrawTokens(document.getElementById('adminTokenAddress').value);
+        });
+
+        document.getElementById('adminCheckPrice').addEventListener('click', function() {
+            adminCheckPrice(document.getElementById('adminCheckServiceName').value);
+        });
+
+        document.getElementById('adminCheckBalance').addEventListener('click', function() {
+            adminCheckContractBalance();
+        });
+    });
+})();

@@ -1,6 +1,6 @@
-const contractAddress = "0xFa429b8e6896806a814EC6E0Bd8E17e16fC37D51";
+const adminContractAddress = "0xFa429b8e6896806a814EC6E0Bd8E17e16fC37D51";
 
-const contractABI = [
+const adminContractABI = [
 	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
