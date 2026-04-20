@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deploy ERC20</title>
+    <title>Universal-token-generator</title>
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -15,7 +15,6 @@
             --muted: #526088;
             --accent: #5f7cff;
             --accent-2: #6ce5ff;
-            --danger: #ff6c8a;
             --shadow-light: #ffffff;
             --shadow-dark: #c8d0e7;
             --radius-xl: 24px;
@@ -47,7 +46,7 @@
             border-radius: var(--radius-xl);
             box-shadow: 12px 12px 26px var(--shadow-dark), -12px -12px 26px var(--shadow-light);
             border: 1px solid rgba(255, 255, 255, 0.6);
-            max-width: 920px;
+            max-width: 960px;
         }
 
         .section-card {
@@ -116,12 +115,6 @@
             min-height: 56px;
         }
 
-        .logo-wrap img {
-            width: 260px;
-            max-width: 100%;
-            filter: drop-shadow(6px 8px 12px rgba(15, 36, 95, 0.2));
-        }
-
         .badge-pill {
             display: inline-block;
             margin-top: 0.5rem;
@@ -132,6 +125,28 @@
             background: linear-gradient(135deg, #cbfff8, #98d1ff);
             box-shadow: 3px 3px 8px #c1d1ec, -3px -3px 8px #ffffff;
         }
+
+        .module-tabs .nav-link {
+            border: none;
+            border-radius: 12px;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .module-tabs .nav-link.active {
+            background: linear-gradient(135deg, var(--accent), #4f6be0);
+            color: #fff;
+        }
+
+        #adminPriceDisplay,
+        #adminContractBalance,
+        #adminStatus {
+            border-radius: 12px;
+            min-height: 40px;
+            padding: 0.6rem 0.75rem;
+            background: #f2f5ff;
+            box-shadow: inset 3px 3px 8px #cad2e8, inset -3px -3px 8px #ffffff;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
@@ -139,102 +154,165 @@
     <script src="https://unpkg.com/@solana/spl-token@0.4.8/lib/index.iife.min.js"></script>
 </head>
 <body>
-    <div class="text-center logo-wrap">
-        <img src="./logo.png" alt="logo_image">
-        <h1 class="hero-title">Token Launch Wizard</h1>
-        <p class="hero-subtitle">Build your ERC20/SPL token in minutes with a clear, guided form.</p>
+    <div class="text-center">
+        <h1 class="hero-title">Universal-token-generator</h1>
+        <p class="hero-subtitle">Create tokens and manage platform settings from one unified app.</p>
     </div>
 
     <div class="container neo-panel mt-2 mb-3 p-4 p-md-5">
-        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
-            <button id="connectWallet" class="btn btn-neo btn-secondary-neo">Connect MetaMask</button>
-            <span class="badge-pill">Simple, fast, and chain-flexible ✨</span>
+        <ul class="nav module-tabs gap-2 mb-4" id="moduleTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="generator-tab" data-bs-toggle="tab" data-bs-target="#generatorPanel" type="button" role="tab">Generator</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#adminPanel" type="button" role="tab">Admin</button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="generatorPanel" role="tabpanel">
+                <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+                    <button id="connectWallet" class="btn btn-neo btn-secondary-neo">Connect MetaMask</button>
+                    <span class="badge-pill">Universal-token-generator ✨</span>
+                </div>
+
+                <h2 class="mb-4" id="wizardTitle">ERC20 Wizard - 1 FTM</h2>
+
+                <form id="deployForm">
+                    <div class="section-card">
+                        <h5 class="mb-3">Token Basics</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="network" class="form-label">Network</label>
+                                <select class="form-select" id="network" required>
+                                    <option value="ethereum">Ethereum</option>
+                                    <option value="bnb">BNB Smart Chain</option>
+                                    <option value="polygon">Polygon</option>
+                                    <option value="arbitrum">Arbitrum One</option>
+                                    <option value="optimism">Optimism</option>
+                                    <option value="base">Base</option>
+                                    <option value="avalanche">Avalanche C-Chain</option>
+                                    <option value="fantom" selected>Fantom Opera</option>
+                                    <option value="solana">Solana Mainnet</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name" placeholder="Example: Nova Token" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="symbol" class="form-label">Symbol</label>
+                                <input type="text" class="form-control" id="symbol" placeholder="NOVA" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="decimals" class="form-label">Decimals</label>
+                                <input type="number" class="form-control" id="decimals" placeholder="18" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="maxSupply" class="form-label">Max Supply</label>
+                                <input type="number" class="form-control" id="maxSupply" placeholder="1000000" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="initialSupply" class="form-label">Initial Supply</label>
+                                <input type="number" class="form-control" id="initialSupply" placeholder="250000" required>
+                                <div class="helper-text">Tip: Initial supply should not exceed max supply.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="taxSection" class="section-card">
+                        <h5 class="mb-3">Advanced Tax Settings (Optional)</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="tax1" class="form-label">Tax1 Rate (%)</label>
+                                <input type="number" class="form-control" id="tax1" placeholder="0.5">
+                            </div>
+                            <div class="col-md-8">
+                                <label for="tax1Address" class="form-label">Tax1 Address</label>
+                                <input type="text" class="form-control" id="tax1Address" placeholder="0x...">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="tax2" class="form-label">Tax2 Rate (%)</label>
+                                <input type="number" class="form-control" id="tax2" placeholder="1.0">
+                            </div>
+                            <div class="col-md-8">
+                                <label for="tax2Address" class="form-label">Tax2 Address</label>
+                                <input type="text" class="form-control" id="tax2Address" placeholder="0x...">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="tax3" class="form-label">Tax3 Rate (%)</label>
+                                <input type="number" class="form-control" id="tax3" placeholder="2.0">
+                            </div>
+                            <div class="col-md-8">
+                                <label for="tax3Address" class="form-label">Tax3 Address</label>
+                                <input type="text" class="form-control" id="tax3Address" placeholder="0x...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-neo">Deploy Token</button>
+                </form>
+
+                <h5 id="deployResult" class="mt-3 result-box"></h5>
+                <div id="downloadSource" class="mt-3"></div>
+            </div>
+
+            <div class="tab-pane fade" id="adminPanel" role="tabpanel">
+                <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+                    <div>
+                        <h2 class="mb-0">Universal-token-generator Admin</h2>
+                        <div class="helper-text">Manage pricing, withdrawals, and ownership.</div>
+                    </div>
+                    <button id="adminConnectWallet" class="btn btn-neo btn-secondary-neo">Connect MetaMask</button>
+                </div>
+
+                <div class="section-card">
+                    <label for="adminNewOwner" class="form-label">Transfer Ownership</label>
+                    <input type="text" class="form-control" id="adminNewOwner" placeholder="New owner address">
+                    <button id="adminTransferOwnership" class="btn btn-neo mt-2">Transfer</button>
+                </div>
+
+                <div class="section-card">
+                    <label for="adminCheckServiceName" class="form-label">Check Price for Service</label>
+                    <input type="text" class="form-control" id="adminCheckServiceName" placeholder="Service key">
+                    <button id="adminCheckPrice" class="btn btn-neo mt-2">Check Price</button>
+                    <div id="adminPriceDisplay" class="mt-3"></div>
+                </div>
+
+                <div class="section-card">
+                    <label for="adminServiceName" class="form-label">Service Name</label>
+                    <input type="text" class="form-control" id="adminServiceName" placeholder="wizard">
+                    <label for="adminServicePrice" class="form-label mt-2">Price (in Wei)</label>
+                    <input type="number" class="form-control" id="adminServicePrice" placeholder="1000000000000000000">
+                    <button id="adminSetPrice" class="btn btn-neo mt-2">Set Price</button>
+                </div>
+
+                <div class="section-card">
+                    <label for="adminWithdrawAmount" class="form-label">Withdraw Amount (in Wei)</label>
+                    <input type="number" class="form-control" id="adminWithdrawAmount" placeholder="0">
+                    <button id="adminWithdrawEth" class="btn btn-neo mt-2">Withdraw ETH</button>
+                </div>
+
+                <div class="section-card">
+                    <label for="adminTokenAddress" class="form-label">Token Address</label>
+                    <input type="text" class="form-control" id="adminTokenAddress" placeholder="ERC20 contract address">
+                    <button id="adminWithdrawTokens" class="btn btn-neo mt-2">Withdraw Tokens</button>
+                </div>
+
+                <div class="section-card">
+                    <button id="adminCheckBalance" class="btn btn-neo mt-1">Check Contract Balance</button>
+                    <div id="adminContractBalance" class="mt-3"></div>
+                </div>
+
+                <div id="adminStatus" class="mt-3"></div>
+            </div>
         </div>
-
-        <h2 class="mb-4" id="wizardTitle">ERC20 Wizard - 1 FTM</h2>
-
-        <form id="deployForm">
-            <div class="section-card">
-                <h5 class="mb-3">Token Basics</h5>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label for="network" class="form-label">Network</label>
-                        <select class="form-select" id="network" required>
-                            <option value="ethereum">Ethereum</option>
-                            <option value="bnb">BNB Smart Chain</option>
-                            <option value="polygon">Polygon</option>
-                            <option value="arbitrum">Arbitrum One</option>
-                            <option value="optimism">Optimism</option>
-                            <option value="base">Base</option>
-                            <option value="avalanche">Avalanche C-Chain</option>
-                            <option value="fantom" selected>Fantom Opera</option>
-                            <option value="solana">Solana Mainnet</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="name" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" placeholder="Example: Nova Token" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="symbol" class="form-label">Symbol</label>
-                        <input type="text" class="form-control" id="symbol" placeholder="NOVA" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="decimals" class="form-label">Decimals</label>
-                        <input type="number" class="form-control" id="decimals" placeholder="18" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="maxSupply" class="form-label">Max Supply</label>
-                        <input type="number" class="form-control" id="maxSupply" placeholder="1000000" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="initialSupply" class="form-label">Initial Supply</label>
-                        <input type="number" class="form-control" id="initialSupply" placeholder="250000" required>
-                        <div class="helper-text">Tip: Initial supply should not exceed max supply.</div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="taxSection" class="section-card">
-                <h5 class="mb-3">Advanced Tax Settings (Optional)</h5>
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label for="tax1" class="form-label">Tax1 Rate (%)</label>
-                        <input type="number" class="form-control" id="tax1" placeholder="0.5">
-                    </div>
-                    <div class="col-md-8">
-                        <label for="tax1Address" class="form-label">Tax1 Address</label>
-                        <input type="text" class="form-control" id="tax1Address" placeholder="0x...">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label for="tax2" class="form-label">Tax2 Rate (%)</label>
-                        <input type="number" class="form-control" id="tax2" placeholder="1.0">
-                    </div>
-                    <div class="col-md-8">
-                        <label for="tax2Address" class="form-label">Tax2 Address</label>
-                        <input type="text" class="form-control" id="tax2Address" placeholder="0x...">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label for="tax3" class="form-label">Tax3 Rate (%)</label>
-                        <input type="number" class="form-control" id="tax3" placeholder="2.0">
-                    </div>
-                    <div class="col-md-8">
-                        <label for="tax3Address" class="form-label">Tax3 Address</label>
-                        <input type="text" class="form-control" id="tax3Address" placeholder="0x...">
-                    </div>
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-neo">Deploy Token</button>
-        </form>
-
-        <h5 id="deployResult" class="mt-3 result-box"></h5>
-        <div id="downloadSource" class="mt-3"></div>
     </div>
 
     <script src="./data.js"></script>
+    <script src="./admin-data.js"></script>
     <script src="./app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
