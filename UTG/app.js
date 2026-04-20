@@ -70,14 +70,14 @@ $(document).ready(function() {
             blockExplorerUrls: ['https://snowtrace.io'],
             label: 'Avalanche C-Chain'
         },
-        fantom: {
+        sonic: {
             type: 'evm',
-            chainId: '0xfa',
-            chainName: 'Fantom Opera',
-            nativeCurrency: { name: 'Fantom', symbol: 'FTM', decimals: 18 },
-            rpcUrls: ['https://rpc.ftm.tools'],
-            blockExplorerUrls: ['https://ftmscan.com'],
-            label: 'Fantom Opera'
+            chainId: '0x92',
+            chainName: 'Sonic',
+            nativeCurrency: { name: 'Sonic', symbol: 'S', decimals: 18 },
+            rpcUrls: ['https://rpc.soniclabs.com'],
+            blockExplorerUrls: ['https://sonicscan.org'],
+            label: 'Sonic'
         },
         solana: {
             type: 'solana',
@@ -90,7 +90,7 @@ $(document).ready(function() {
 
     function getSelectedNetwork() {
         const selected = $('#network').val();
-        return NETWORKS[selected] || NETWORKS.fantom;
+        return NETWORKS[selected] || NETWORKS.sonic;
     }
 
     function isSolanaSelected() {

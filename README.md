@@ -1,10 +1,10 @@
-# Universal-token-generator
+# Universal Token Generator (UTG)
 
-A lightweight, browser-based token generator and admin UI for **major EVM networks** (Ethereum, BNB Smart Chain, Polygon, Arbitrum, Optimism, Base, Avalanche, and Fantom) plus **Solana** support via Phantom.
+A lightweight, browser-based token generator and admin UI for **major EVM networks** (Ethereum, BNB Smart Chain, Polygon, Arbitrum, Optimism, Base, Avalanche, and Sonic) plus **Solana** support via Phantom.
 
 This repository now ships as a single static web app package:
 
-- **`ERC20Builder_Opera/`** – includes both token generation and admin tools in one unified interface.
+- **`UTG/`** – includes both token generation and admin tools in one unified interface.
 
 ---
 
@@ -22,7 +22,7 @@ This repository now ships as a single static web app package:
 
 ```text
 .
-├── ERC20Builder_Opera/
+├── UTG/
 │   ├── app.js
 │   ├── data.js
 │   ├── admin-data.js
@@ -40,7 +40,7 @@ This repository now ships as a single static web app package:
 
 ```bash
 git clone https://github.com/<your-org-or-user>/Universal-token-generator.git
-cd Universal-token-generator
+cd Universal-Token-Generator
 ```
 
 ### 2) Run a static server
@@ -48,7 +48,7 @@ cd Universal-token-generator
 You can use `http-server` (Node.js):
 
 ```bash
-npx http-server ERC20Builder_Opera
+npx http-server UTG
 ```
 
 Open the local URL printed in the terminal (typically `http://127.0.0.1:8080`).
